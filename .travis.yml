@@ -1,9 +1,12 @@
 language: node_js
 node_js:
-  - "10"
+- '10'
 sudo: enabled
-before_install: echo "---------- start to install dependencies ----------"
+before_install:
+- openssl aes-256-cbc -K $encrypted_904589bea512_key -iv $encrypted_904589bea512_iv
+  -in id_rsa.enc -out ~\/.ssh/id_rsa -d
+- echo "---------- start to install dependencies ----------"
 install: npm install
 before_script: echo "---------- start to build ----------"
 script:
-  - npm run build
+- npm run build
