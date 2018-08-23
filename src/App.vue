@@ -27,7 +27,6 @@
     <alert v-model="showOutput" @on-hide="output = ''" :title="copySuccess ? '已自动复制内容' : '请手动复制'">
       <div id="output-content" class="output-content">{{output}}</div>
     </alert>
-    <button ref="resultButton" :data-clipboard-text="output" style="display: none"></button>
   </div>
 </template>
 
@@ -51,7 +50,6 @@ import {
 } from 'vux'
 
 import CryptoJS from 'crypto-js'
-import Clipboard from 'clipboard'
 import { Base64 } from 'js-base64'
 
 export default {
@@ -107,37 +105,19 @@ export default {
     this.vi = window.localStorage.getItem('vi') || ''
   },
   mounted () {
-    let clipboardOut = new Clipboard(this.$refs.resultButton)
-    clipboardOut.on('success', (e) => {
-      this.$vux.toast.text('已自动复制内容', 'bottom')
-      this.copySuccess = true
-      e.clearSelection()
-    })
-    clipboardOut.on('error', (e) => {
-      this.$vux.toast.text('复制失败，请手动复制', 'bottom')
-      this.copySuccess = false
-      e.clearSelection()
-    })
   },
   methods: {
     encrypt () {
       const word = this.input
-      const key = CryptoJS.enc.Utf8.parse(this.key)
-      const iv = CryptoJS.enc.Utf8.parse(this.Vi)
-      let srcs = CryptoJS.enc.Utf8.parse(word)
-      let encrypted = CryptoJS.AES.encrypt(srcs, key, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 })
-      this.output = Base64.encode(encrypted.ciphertext.toString().toUpperCase())
-      this.$nextTick(() => {
-        this.copyResult()
-      })
+      const key = this.key
+      let encrypted = CryptoJS.AES.encrypt(word, key)
+      this.output = Base64.encode(encrypted.toString())
+      this.copyResult()
     },
     decrypt () {
       const word = Base64.decode(this.input)
-      const key = CryptoJS.enc.Utf8.parse(this.key)
-      const iv = CryptoJS.enc.Utf8.parse(this.Vi)
-      let encryptedHexStr = CryptoJS.enc.Hex.parse(word)
-      let srcs = CryptoJS.enc.Base64.stringify(encryptedHexStr)
-      let decrypt = CryptoJS.AES.decrypt(srcs, key, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 })
+      const key = this.key
+      let decrypt = CryptoJS.AES.decrypt(word, key)
       let decryptedStr = decrypt.toString(CryptoJS.enc.Utf8)
       this.output = decryptedStr.toString()
       // var regex = /^http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- ./?%&=]*)?$/
@@ -156,12 +136,22 @@ export default {
       //   document.getElementById('showBase64Image').innerHTML = ''
       // }
 
-      this.$nextTick(() => {
-        this.copyResult()
-      })
+      this.copyResult()
     },
     copyResult () {
-      this.$refs.resultButton.click()
+      const input = document.createElement('input')
+      input.value = this.output
+      input.readOnly = true
+      document.body.appendChild(input)
+      input.select()
+      if (document.execCommand('copy')) {
+        this.$vux.toast.text('结果已复制到剪切板', 'bottom')
+        this.copySuccess = true
+      } else {
+        this.$vux.toast.text('复制失败，请手动复制', 'bottom')
+        this.copySuccess = false
+      }
+      document.body.removeChild(input)
     }
   }
 }
