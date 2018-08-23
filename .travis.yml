@@ -11,7 +11,7 @@ before_install:
   - chmod 600 ~/.ssh/id_rsa
   - ssh-add ~/.ssh/id_rsa
 script:
-  - npm run build
+  - yarn run build
 deploy:
   provider: script
   skip_cleanup: true
