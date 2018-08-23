@@ -152,6 +152,9 @@ export default {
         this.copySuccess = false
       }
       document.body.removeChild(input)
+    },
+    paste () {
+      this.$vux.toast.text('功能正在开发中，请手动粘贴...', 'middle')
     }
   }
 }
