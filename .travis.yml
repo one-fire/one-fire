@@ -1,0 +1,7 @@
+language: node_js
+sudo: enabled
+before_install: echo "---------- start to install dependencies ----------"
+install: npm install
+before_script: echo "---------- start to build ----------"
+script:
+- npm run build
